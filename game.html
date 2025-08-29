@@ -1,1 +1,575 @@
-dd
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Training Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            overflow: hidden;
+        }
+
+        .game-container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .progress-box {
+            width: 35px;
+            height: 35px;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .progress-box.current {
+            border-color: #FFD700;
+            background: rgba(255, 215, 0, 0.2);
+            transform: scale(1.1);
+        }
+
+        .progress-box.correct {
+            background: #4CAF50;
+            border-color: #4CAF50;
+            color: white;
+        }
+
+        .progress-box.incorrect {
+            background: #f44336;
+            border-color: #f44336;
+            color: white;
+        }
+
+        /* Welcome Screen */
+        .welcome-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .game-title {
+            font-size: 3.5em;
+            margin-bottom: 40px;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .rules-container {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .rules-title {
+            font-size: 1.8em;
+            color: #FFD700;
+            margin-bottom: 20px;
+        }
+
+        .rules-list {
+            text-align: left;
+            font-size: 1.1em;
+            line-height: 1.8;
+        }
+
+        .rules-list li {
+            margin-bottom: 10px;
+            padding-left: 10px;
+        }
+
+        .start-button {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            border: none;
+            padding: 18px 50px;
+            font-size: 1.6em;
+            color: white;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+            font-weight: bold;
+        }
+
+        .start-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Game Screen */
+        .game-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+        }
+
+        .level-display {
+            font-size: 2em;
+            margin-bottom: 20px;
+            color: #FFD700;
+        }
+
+        .countdown-display {
+            font-size: 2.5em;
+            color: #FF6B6B;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+
+        .number-container {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 60px;
+            border-radius: 25px;
+            margin: 30px 0;
+            min-height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .number-text {
+            font-size: 4em;
+            font-weight: bold;
+            letter-spacing: 0.1em;
+            word-break: break-all;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            font-family: 'Courier New', monospace;
+        }
+
+        .input-container {
+            display: none;
+            margin-top: 40px;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .number-input {
+            font-size: 1.8em;
+            padding: 18px;
+            border: none;
+            border-radius: 15px;
+            width: 350px;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.1em;
+        }
+
+        .submit-button {
+            background: #4CAF50;
+            border: none;
+            padding: 18px 35px;
+            font-size: 1.8em;
+            color: white;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .submit-button:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .feedback-message {
+            font-size: 1.8em;
+            margin: 25px 0;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .feedback-correct {
+            color: #4CAF50;
+        }
+
+        .feedback-incorrect {
+            color: #FF6B6B;
+        }
+
+        /* Results Screen */
+        .results-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .results-title {
+            font-size: 3em;
+            margin-bottom: 30px;
+            color: #FFD700;
+        }
+
+        .score-display {
+            font-size: 4em;
+            margin: 30px 0;
+            font-weight: bold;
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .score-details {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 40px;
+            font-size: 1.2em;
+            line-height: 1.6;
+        }
+
+        .performance-rating {
+            font-size: 2em;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .restart-button {
+            background: linear-gradient(45deg, #4ECDC4, #44A08D);
+            border: none;
+            padding: 18px 50px;
+            font-size: 1.6em;
+            color: white;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .restart-button:hover {
+            transform: translateY(-3px);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .game-title {
+                font-size: 2.5em;
+            }
+            
+            .number-text {
+                font-size: 2.5em;
+            }
+            
+            .number-input {
+                width: 280px;
+                font-size: 1.5em;
+            }
+            
+            .progress-box {
+                width: 30px;
+                height: 30px;
+                font-size: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Progress Bar -->
+        <div class="progress-container" id="progressContainer"></div>
+
+        <!-- Welcome Screen -->
+        <div class="welcome-screen" id="welcomeScreen">
+            <h1 class="game-title">Memory Training Game</h1>
+            <div class="rules-container">
+                <h2 class="rules-title">🧠 Game Rules</h2>
+                <ul class="rules-list">
+                    <li>🎯 20 levels of increasing difficulty (1-digit to 20-digit numbers)</li>
+                    <li>⏱️ Each level lasts 5 seconds - memorize the number!</li>
+                    <li>✍️ After countdown, enter the number you remember</li>
+                    <li>🏆 Scoring: Level 1 = 5pts, Level 2 = 10pts, ..., Level 20 = 100pts</li>
+                    <li>📊 Maximum score: 1,050 points</li>
+                    <li>⭐ Score 840+ points for excellent performance!</li>
+                </ul>
+            </div>
+            <button class="start-button" onclick="startGame()">Start Game</button>
+        </div>
+
+        <!-- Game Screen -->
+        <div class="game-screen" id="gameScreen">
+            <div class="level-display" id="levelDisplay"></div>
+            <div class="countdown-display" id="countdownDisplay"></div>
+            <div class="number-container">
+                <div class="number-text" id="numberText"></div>
+            </div>
+            <div class="feedback-message" id="feedbackMessage"></div>
+            <div class="input-container" id="inputContainer">
+                <input type="text" class="number-input" id="numberInput" placeholder="Enter the number">
+                <button class="submit-button" onclick="submitAnswer()">Submit</button>
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div class="results-screen" id="resultsScreen">
+            <h1 class="results-title">Game Complete!</h1>
+            <div class="score-display" id="scoreDisplay"></div>
+            <div class="score-details" id="scoreDetails"></div>
+            <button class="restart-button" onclick="restartGame()">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        let currentLevel = 1;
+        let currentNumber = '';
+        let totalScore = 0;
+        let correctAnswers = 0;
+        let countdownTimer;
+        let gameResults = [];
+
+        // Initialize progress boxes
+        function initializeProgress() {
+            const container = document.getElementById('progressContainer');
+            container.innerHTML = '';
+            for (let i = 1; i <= 20; i++) {
+                const box = document.createElement('div');
+                box.className = 'progress-box';
+                box.textContent = i;
+                box.id = `progress-${i}`;
+                container.appendChild(box);
+            }
+        }
+
+        // Update progress box
+        function updateProgress(level, isCorrect) {
+            const box = document.getElementById(`progress-${level}`);
+            if (isCorrect) {
+                box.className = 'progress-box correct';
+            } else {
+                box.className = 'progress-box incorrect';
+            }
+        }
+
+        // Highlight current level
+        function highlightCurrentLevel(level) {
+            // Reset all boxes
+            for (let i = 1; i <= 20; i++) {
+                const box = document.getElementById(`progress-${i}`);
+                if (!box.classList.contains('correct') && !box.classList.contains('incorrect')) {
+                    box.className = 'progress-box';
+                }
+            }
+            
+            // Highlight current
+            if (level <= 20) {
+                const currentBox = document.getElementById(`progress-${level}`);
+                if (!currentBox.classList.contains('correct') && !currentBox.classList.contains('incorrect')) {
+                    currentBox.classList.add('current');
+                }
+            }
+        }
+
+        // Generate random number with specified digits
+        function generateRandomNumber(digits) {
+            let number = '';
+            for (let i = 0; i < digits; i++) {
+                if (i === 0) {
+                    // First digit cannot be 0
+                    number += Math.floor(Math.random() * 9) + 1;
+                } else {
+                    number += Math.floor(Math.random() * 10);
+                }
+            }
+            return number;
+        }
+
+        // Start the game
+        function startGame() {
+            currentLevel = 1;
+            totalScore = 0;
+            correctAnswers = 0;
+            gameResults = [];
+            
+            document.getElementById('welcomeScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'flex';
+            document.getElementById('resultsScreen').style.display = 'none';
+            
+            initializeProgress();
+            startLevel();
+        }
+
+        // Start a new level
+        function startLevel() {
+            if (currentLevel > 20) {
+                showResults();
+                return;
+            }
+
+            highlightCurrentLevel(currentLevel);
+            currentNumber = generateRandomNumber(currentLevel);
+            
+            document.getElementById('levelDisplay').textContent = `Level ${currentLevel} - ${currentLevel} digit${currentLevel > 1 ? 's' : ''}`;
+            document.getElementById('numberText').textContent = currentNumber;
+            document.getElementById('inputContainer').style.display = 'none';
+            document.getElementById('feedbackMessage').textContent = '';
+            document.getElementById('numberInput').value = '';
+
+            // Start countdown
+            let timeLeft = 5;
+            document.getElementById('countdownDisplay').textContent = `${timeLeft}`;
+            
+            countdownTimer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('countdownDisplay').textContent = `${timeLeft}`;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(countdownTimer);
+                    // Hide number and show input
+                    document.getElementById('numberText').textContent = '?';
+                    document.getElementById('countdownDisplay').textContent = 'Enter the number:';
+                    document.getElementById('inputContainer').style.display = 'flex';
+                    document.getElementById('numberInput').focus();
+                }
+            }, 1000);
+        }
+
+        // Submit answer
+        function submitAnswer() {
+            const userInput = document.getElementById('numberInput').value.trim();
+            const isCorrect = userInput === currentNumber;
+            const levelScore = currentLevel * 5;
+
+            if (isCorrect) {
+                totalScore += levelScore;
+                correctAnswers++;
+                document.getElementById('feedbackMessage').textContent = `Correct! +${levelScore} points`;
+                document.getElementById('feedbackMessage').className = 'feedback-message feedback-correct';
+            } else {
+                document.getElementById('feedbackMessage').textContent = `Incorrect. The number was: ${currentNumber}`;
+                document.getElementById('feedbackMessage').className = 'feedback-message feedback-incorrect';
+            }
+
+            updateProgress(currentLevel, isCorrect);
+            gameResults.push({
+                level: currentLevel,
+                correct: isCorrect,
+                score: isCorrect ? levelScore : 0
+            });
+
+            // Move to next level after 2 seconds
+            setTimeout(() => {
+                currentLevel++;
+                startLevel();
+            }, 2000);
+        }
+
+        // Show final results
+        function showResults() {
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('resultsScreen').style.display = 'flex';
+            
+            document.getElementById('scoreDisplay').textContent = `${totalScore} / 1,050`;
+            
+            let performanceRating = '';
+            let ratingColor = '';
+            
+            if (totalScore >= 1000) {
+                performanceRating = '🏆 PERFECT!';
+                ratingColor = '#FFD700';
+            } else if (totalScore >= 900) {
+                performanceRating = '🌟 OUTSTANDING!';
+                ratingColor = '#FFD700';
+            } else if (totalScore >= 840) {
+                performanceRating = '⭐ EXCELLENT!';
+                ratingColor = '#4CAF50';
+            } else if (totalScore >= 700) {
+                performanceRating = '👏 VERY GOOD!';
+                ratingColor = '#4ECDC4';
+            } else if (totalScore >= 500) {
+                performanceRating = '👍 GOOD!';
+                ratingColor = '#FFA500';
+            } else {
+                performanceRating = '💪 KEEP PRACTICING!';
+                ratingColor = '#FF6B6B';
+            }
+
+            const accuracy = Math.round((correctAnswers / 20) * 100);
+            
+            document.getElementById('scoreDetails').innerHTML = `
+                <div class="performance-rating" style="color: ${ratingColor};">${performanceRating}</div>
+                <div><strong>Correct Answers:</strong> ${correctAnswers} / 20</div>
+                <div><strong>Accuracy:</strong> ${accuracy}%</div>
+                <div><strong>Total Score:</strong> ${totalScore} points</div>
+            `;
+        }
+
+        // Restart game
+        function restartGame() {
+            startGame();
+        }
+
+        // Handle Enter key press
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const inputContainer = document.getElementById('inputContainer');
+                if (inputContainer.style.display === 'flex') {
+                    submitAnswer();
+                }
+            }
+        });
+
+        // Initialize on page load
+        window.onload = function() {
+            initializeProgress();
+        };
+    </script>
+</body>
+</html>
